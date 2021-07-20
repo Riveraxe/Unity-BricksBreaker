@@ -6,22 +6,22 @@ using UnityEngine;
 public class BallMove : MonoBehaviour
 {
     public float MaxSpeed;
-    
     private Rigidbody2D _self;
     private Vector2 BallForce;
-
     private Vector2 NowSpeed;
+    private float SpeedX;
+    private float SpeedY;
     public Transform GroundCheck;
-    public Transform Brick;
+    public Transform Board;
     public float GroundRadius;
     public bool isGround;
-    public LayerMask BreakLayer;
+    //public LayerMask BreakLayer;
     public LayerMask GroundLayer;
     // Start is called before the first frame update
     void Start()
     {
         _self = GetComponent<Rigidbody2D>();
-        _self.velocity = new Vector2(0, -10);
+        _self.velocity = new Vector2(0, -MaxSpeed);
     }
 
     // Update is called once per frame
@@ -32,34 +32,36 @@ public class BallMove : MonoBehaviour
     private void FixedUpdate()
     {
         PhysicCheck();
-        MeetBricks();
+        PushBall();
     }
 
     void PhysicCheck()
     {
         isGround = Physics2D.OverlapCircle(GroundCheck.position, GroundRadius,GroundLayer);
-        if (isGround && _self.velocity.magnitude < MaxSpeed)
+        if (isGround)
         {
             Debug.Log("------zhuang--------");
-            float HorzonInput = Input.GetAxis("Horizontal");
-            BallForce = new Vector2(HorzonInput*100, 0);
-            _self.AddForce(BallForce);
+            SpeedX = _self.position.x - Board.position.x;
+            SpeedY = (float)Math.Sqrt(MaxSpeed * MaxSpeed - SpeedX * SpeedX);
+            //float HorzonInput = Input.GetAxis("Horizontal");
+            //BallForce = new Vector2(SpeedX*10, 0);
+            //_self.AddForce(BallForce);
+            _self.velocity = new Vector2(SpeedX, SpeedY);
+            
+            //Debug.Log(SpeedX.ToString("0.00")+SpeedY.ToString("0.00"));
         }
     }
 
-    void MeetBricks()
+    void PushBall()
     {
-        if (Physics2D.OverlapCircle(GroundCheck.position,GroundRadius,BreakLayer))
+        if (Math.Abs(_self.velocity.y) <= 1 )
         {
-            Invoke("SetBrick",0.1f);
+            _self.velocity = new Vector2(_self.velocity.x, 2);
         }
+        
     }
 
-    void SetBrick()
-    {
-        Brick.gameObject.SetActive(false);
-    }
-
+    //void BallToBoard
     public void OnDrawGizmos()
     {
         Gizmos.DrawSphere(GroundCheck.position,GroundRadius);
